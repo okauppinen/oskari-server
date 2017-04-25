@@ -128,4 +128,13 @@
         where uuid = #uuid# and id = #id#
     </update>
 
+	<select id="getUserLayerBbox" parameterClass="java.lang.Long" resultClass="java.lang.String">
+		SELECT
+		ST_AsText(ST_Extent (geometry))
+		FROM
+		user_layer_data
+		WHERE
+		user_layer_id = #id#
+	</select>
+
 </sqlMap>

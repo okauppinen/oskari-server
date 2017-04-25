@@ -16,4 +16,5 @@ public interface UserLayerDbService extends BaseService<UserLayer> {
         public void deleteUserLayer(final UserLayer userlayer) throws ServiceException;
         public void deleteUserLayer(final long id) throws ServiceException;
         public int updatePublisherName(final long id, final String uuid, final String name);
+        public String getUserLayerExtent (final long id);
 }

@@ -4,9 +4,13 @@ import fi.nls.oskari.domain.map.OskariLayer;
 import fi.nls.oskari.domain.map.userlayer.UserLayer;
 import fi.nls.oskari.log.LogFactory;
 import fi.nls.oskari.log.Logger;
+import fi.nls.oskari.map.userlayer.service.UserLayerDbService;
+import fi.nls.oskari.map.userlayer.service.UserLayerDbServiceIbatisImpl;
 import fi.nls.oskari.util.JSONHelper;
 import fi.nls.oskari.util.PropertyUtil;
 import org.json.JSONObject;
+
+
 
 /**
  * User layer to oskari layer json
@@ -15,6 +19,7 @@ public class LayerJSONFormatterUSERLAYER extends LayerJSONFormatter {
 
     private static final String USERLAYER_RENDERING_URL = "userlayer.rendering.url";
     private static final String USERLAYER_RENDERING_ELEMENT = "userlayer.rendering.element";
+    private static final UserLayerDbService userLayerService = new UserLayerDbServiceIbatisImpl();
 
     private static final String PROPERTY_RENDERING_URL = PropertyUtil.getOptional(USERLAYER_RENDERING_URL);
     final String userlayerRenderingElement = PropertyUtil.get(USERLAYER_RENDERING_ELEMENT);
@@ -44,6 +49,8 @@ public class LayerJSONFormatterUSERLAYER extends LayerJSONFormatter {
         // user layer rendering url - override DB url if property is defined
         JSONHelper.putValue(layerJson, "url", getUserLayerTileUrl());
         JSONHelper.putValue(layerJson, "renderingElement", userlayerRenderingElement);
+        JSONHelper.putValue(layerJson, "geom", userLayerService.getUserLayerExtent(ulayer.getId()));
+
         return layerJson;
     }
 

@@ -1,6 +1,7 @@
 package fi.nls.oskari.map.userlayer.service;
 
 import com.ibatis.sqlmap.client.SqlMapSession;
+
 import fi.nls.oskari.domain.map.userlayer.UserLayer;
 import fi.nls.oskari.log.LogFactory;
 import fi.nls.oskari.log.Logger;
@@ -145,5 +146,9 @@ public class UserLayerDbServiceIbatisImpl extends
             log.error(e, "Failed to update publisher name", data);
         }
         return 0;
+    }
+
+    public String getUserLayerExtent(long id) {
+        return queryForObject(getNameSpace() + ".getUserLayerBbox", id);
     }
 }
