@@ -18,6 +18,8 @@ import org.json.JSONObject;
 
 import java.util.List;
 
+import static fi.nls.oskari.control.ActionConstants.*;
+
 /**
  * Returns users user data layers as JSON.
  */
@@ -49,6 +51,8 @@ public class GetUserLayersHandler extends ActionHandler {
                 final JSONObject userLayer = userLayerDataService.parseUserLayer2JSON(ul, baseLayer);
                 JSONObject permissions = OskariLayerWorker.getAllowedPermissions();
                 JSONHelper.putValue(userLayer, "permissions", permissions);
+                // transform WKT for layers now that we know SRS
+                OskariLayerWorker.transformWKTGeom(userLayer, params.getHttpParam(PARAM_SRS));
                 layers.put(userLayer);
             }
         }
