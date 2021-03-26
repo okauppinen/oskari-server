@@ -174,28 +174,17 @@ public class PublishPermissionHelper {
     private boolean hasRightToPublishAnalysisLayer(final String layerId, final User user) {
         final long analysisId = AnalysisHelper.getAnalysisIdFromLayerId(layerId);
         if(analysisId == -1) {
+            LOG.warn("Error parsing layerId:", layerId);
             return false;
         }
         final Analysis analysis = analysisService.getAnalysisById(analysisId);
-        if (!analysis.getUuid().equals(user.getUuid())) {
-            LOG.warn("Found analysis layer in selected that isn't users own! LayerId:", layerId, "User UUID:", user.getUuid(), "Analysis UUID:", analysis.getUuid());
-            return false;
-        }
-
-        final Set<String> permissions = permissionsService.getResourcesWithGrantedPermissions(
-                ResourceType.analysislayer, user, PermissionType.PUBLISH);
-        LOG.debug("Analysis layer publish permissions", permissions);
-        final String permissionKey = "analysis+"+analysis.getId();
-
-        LOG.debug("PublishPermissions:", permissions);
-        boolean hasPermission = permissions.contains(permissionKey);
-        if (hasPermission) {
+        if (analysis.isOwnedBy(user.getUuid())) {
             // write publisher name for analysis
             analysisService.updatePublisherName(analysisId, user.getUuid(), user.getScreenname());
-        } else {
-            LOG.warn("Found analysis layer in selected that isn't publishable any more! Permissionkey:", permissionKey, "User:", user);
+            return true;
         }
-        return hasPermission;
+        LOG.warn("Found analysis layer in selected that isn't users own! LayerId:", layerId, "User UUID:", user.getUuid(), "Analysis UUID:", analysis.getUuid());
+        return false;
     }
 
     private boolean hasRightToPublishUserLayer(final String layerId, final User user) {

@@ -126,7 +126,6 @@ public class MapfullHandler extends BundleHandler {
         final JSONArray mfStateLayers = JSONHelper.getEmptyIfNull(mapfullState.optJSONArray(KEY_SEL_LAYERS));
         copySelectedLayersToConfigLayers(mfConfigLayers, mfStateLayers);
         final Set<String> bundleIds = getBundleIds(params.getStartupSequence());
-        final boolean useDirectURLForMyplaces = false;
         final String mapSRS = getSRSFromMapConfig(mapfullConfig);
         final boolean forceProxy = mapfullConfig.optBoolean(KEY_FORCE_PROXY, false);
         final JSONArray fullConfigLayers = getFullLayerConfig(mfConfigLayers,
@@ -135,7 +134,6 @@ public class MapfullHandler extends BundleHandler {
                 params.getViewId(),
                 params.getViewType(),
                 bundleIds,
-                useDirectURLForMyplaces,
                 params.isModifyURLs(),
                 mapSRS,
                 forceProxy,
@@ -175,20 +173,18 @@ public class MapfullHandler extends BundleHandler {
 
     public static JSONArray getFullLayerConfig(final JSONArray layersArray,
                                                final User user, final String lang, final long viewID,
-                                               final String viewType, final Set<String> bundleIds,
-                                               final boolean useDirectURLForMyplaces, final String mapSRS) {
-        return getFullLayerConfig(layersArray, user, lang, viewID, viewType, bundleIds, useDirectURLForMyplaces, false, mapSRS);
+                                               final String viewType, final Set<String> bundleIds, final String mapSRS) {
+        return getFullLayerConfig(layersArray, user, lang, viewID, viewType, bundleIds, false, mapSRS);
     }
 
     public static JSONArray getFullLayerConfig(final JSONArray layersArray,
                                                final User user, final String lang, final long viewID,
                                                final String viewType, final Set<String> bundleIds,
-                                               final boolean useDirectURLForMyplaces,
                                                final boolean modifyURLs,
                                                final String mapSRS) {
         return getFullLayerConfig(
                 layersArray, user, lang, viewID, viewType, bundleIds,
-                useDirectURLForMyplaces, modifyURLs, mapSRS, false, null);
+                modifyURLs, mapSRS, false, null);
     }
 
     /**
@@ -263,7 +259,6 @@ public class MapfullHandler extends BundleHandler {
      * @param viewID
      * @param viewType
      * @param bundleIds
-     * @param useDirectURLForMyplaces
      * @param modifyURLs              false to keep urls as is, true to modify them for easier proxy forwards
      * @param forceProxy              false to keep urls as is, true to proxy all layers
      * @param plugins
@@ -272,7 +267,6 @@ public class MapfullHandler extends BundleHandler {
     public static JSONArray getFullLayerConfig(final JSONArray layersArray,
                                                final User user, final String lang, final long viewID,
                                                final String viewType, final Set<String> bundleIds,
-                                               final boolean useDirectURLForMyplaces,
                                                final boolean modifyURLs,
                                                final String mapSRS,
                                                final boolean forceProxy,
@@ -302,9 +296,9 @@ public class MapfullHandler extends BundleHandler {
                         LOGGER.warn("Found my places layer in selected. Error parsing id with category id: ", layerId);
                     }
                 } else if (layerId.startsWith(PREFIX_ANALYSIS)) {
-                    final long categoryId = AnalysisHelper.getAnalysisIdFromLayerId(layerId);
-                    if (categoryId != -1) {
-                        publishedAnalysis.add(categoryId);
+                    final long analysisId = AnalysisHelper.getAnalysisIdFromLayerId(layerId);
+                    if (analysisId != -1) {
+                        publishedAnalysis.add(analysisId);
                     } else {
                         LOGGER.warn("Found analysis layer in selected. Error parsing id with category id: ", layerId);
                     }
@@ -354,8 +348,8 @@ public class MapfullHandler extends BundleHandler {
 
         // construct layers JSON
         final JSONArray prefetch = getLayersArray(struct);
-        appendMyPlacesLayers(prefetch, publishedMyPlaces, user, viewID, bundleIds, mapSRS, useDirectURLForMyplaces, modifyURLs, plugins);
-        appendAnalysisLayers(prefetch, publishedAnalysis, user, viewID, lang, bundleIds, useDirectURLForMyplaces, modifyURLs);
+        appendMyPlacesLayers(prefetch, publishedMyPlaces, user, viewID, lang, bundleIds, mapSRS);
+        appendAnalysisLayers(prefetch, publishedAnalysis, user, viewID, lang, bundleIds, mapSRS);
         appendUserLayers(prefetch, publishedUserLayers, user, viewID, lang, bundleIds, mapSRS);
         return prefetch;
     }
@@ -366,20 +360,11 @@ public class MapfullHandler extends BundleHandler {
                                              final long viewID,
                                              final String lang,
                                              final Set<String> bundleIds,
-                                             final boolean useDirectURL,
-                                             final boolean modifyURLs) {
+                                             final String mapSrs) {
         if (publishedAnalysis.isEmpty()) {
             return;
         }
         final boolean analyseBundlePresent = bundleIds.contains(BUNDLE_ANALYSE);
-        final Set<String> permissions = permissionsService.getResourcesWithGrantedPermissions(
-                AnalysisLayer.TYPE, user, PermissionType.VIEW_PUBLISHED.name());
-        LOGGER.debug("Analysis layer permissions for published view", permissions);
-        OskariLayer baseLayer = AnalysisDataService.getBaseLayer();
-        JSONObject baseOptions = new JSONObject();
-        if (baseLayer != null) {
-            baseOptions = baseLayer.getOptions();
-        }
         for (Long id : publishedAnalysis) {
             final Analysis analysis = analysisService.getAnalysisById(id);
             if(analysis == null){
@@ -390,18 +375,13 @@ public class MapfullHandler extends BundleHandler {
                 // skip it's an own bundle and analysis bundle is present -> will be loaded via analysisbundle
                 continue;
             }
-            final String permissionKey = "analysis+" + id;
-            boolean containsKey = permissions.contains(permissionKey);
-            if (!ownLayer && !containsKey) {
+            if (!ownLayer && !analysis.isPublished()) {
                 LOGGER.info("Found analysis layer in selected that is no longer published. ViewID:",
                         viewID, "Analysis id:", id);
                 continue;
             }
-            final JSONObject json = AnalysisHelper.getlayerJSON(analysis,baseOptions, lang,
-                    useDirectURL, user.getUuid(), modifyURLs);
-            if (json != null) {
-                layerList.put(json);
-            }
+            final JSONObject json = AnalysisDataService.parseAnalysis2JSON(analysis, mapSrs, lang);
+            layerList.put(json);
         }
     }
 
@@ -418,11 +398,9 @@ public class MapfullHandler extends BundleHandler {
                                              final List<Long> publishedMyPlaces,
                                              final User user,
                                              final long viewID,
+                                             final String lang,
                                              final Set<String> bundleIds,
-                                             final String mapSrs,
-                                             final boolean useDirectURL,
-                                             final boolean modifyURLs,
-                                             final JSONArray plugins) {
+                                             final String mapSrs) {
         if (publishedMyPlaces.isEmpty()) {
             return;
         }
@@ -445,7 +423,7 @@ public class MapfullHandler extends BundleHandler {
                 continue;
             }
 
-            JSONObject myPlaceLayer = MyPlacesService.parseLayerToJSON(mpLayer, mapSrs);
+            JSONObject myPlaceLayer = MyPlacesService.parseLayerToJSON(mpLayer, mapSrs, lang);
             // Get as WFS layer
             JSONHelper.putValue(myPlaceLayer, LayerJSONFormatter.KEY_TYPE, OskariLayer.TYPE_WFS);
             layerList.put(myPlaceLayer);
