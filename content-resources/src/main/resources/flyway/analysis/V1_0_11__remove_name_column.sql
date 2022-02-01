@@ -1,0 +1,1 @@
+ALTER TABLE analysis DROP COLUMN IF EXISTS name;
