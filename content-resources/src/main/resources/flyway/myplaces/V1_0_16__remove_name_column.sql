@@ -1,0 +1,2 @@
+ALTER TABLE categories
+DROP COLUMN IF EXISTS category_name CASCADE;
