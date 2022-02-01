@@ -81,9 +81,6 @@ public class MyPlacesLayersHandler extends RestActionHandler {
         category.setLocale(params.getHttpParamAsJSON(PARAM_LOCALE));
         category.getWFSLayerOptions()
                 .setDefaultFeatureStyle(params.getHttpParamAsJSON(PARAM_STYLE));
-        // FIXME: remove category_name column and update mappers to get rid of this
-        // copy default lang name to category_name from locale (not-null constraint)
-        category.setCategory_name(category.getName(PropertyUtil.getDefaultLanguage()));
         try {
             layerService.insert(Collections.singletonList(category));
             LOG.info("Inserted category:", category.getId());
@@ -115,9 +112,6 @@ public class MyPlacesLayersHandler extends RestActionHandler {
             category.setLocale(params.getHttpParamAsJSON(PARAM_LOCALE));
             category.getWFSLayerOptions()
                 .setDefaultFeatureStyle(params.getHttpParamAsJSON(PARAM_STYLE));
-            // FIXME: remove category_name column and update mappers to get rid of this
-            // copy default lang name to category_name from locale (not-null constraint)
-            category.setCategory_name(category.getName(PropertyUtil.getDefaultLanguage()));
             layerService.update(Collections.singletonList(category));
             LOG.info("Updated category:", id);
             AuditLog.user(params.getClientIp(), params.getUser())
@@ -170,9 +164,8 @@ public class MyPlacesLayersHandler extends RestActionHandler {
 
     private MyPlaceCategory createDefaultCategory() {
         MyPlaceCategory category = new MyPlaceCategory();
-        category.setName("");
         category.setDefault(true);
-        category.setLocale(new JSONObject());
+        category.setLocale(new JSONObject()); // baselayer has locale
         category.getWFSLayerOptions().setDefaultFeatureStyle(WFSLayerOptions.getDefaultOskariStyle());
         return category;
     }

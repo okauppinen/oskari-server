@@ -16,7 +16,7 @@ public class MyPlaceLayersUtils {
     private static final String NAME = "name";
     private static final String LAYERS = "layers";
     
-    
+    // TODO delete
     public static JSONArray generateMyPlaceJSON(List<MyPlaceCategory> myPlaces) throws ActionException {
         final JSONArray rootArray = new JSONArray();
         
