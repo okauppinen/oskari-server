@@ -122,7 +122,7 @@ public class UserLayerDbServiceMybatisImpl extends UserLayerDbService {
         return layer;
     }
     private void validateUserLayer (UserLayer layer) throws UserLayerException {
-        if (layer.getNames().isEmpty()) {
+        if (layer.getName().isEmpty()) {
             throw new UserLayerException("Couldn't find name for userlayer", UserLayerException.ErrorType.NO_NAME);
         }
     }
