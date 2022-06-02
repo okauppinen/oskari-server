@@ -1,7 +1,6 @@
 package org.oskari.announcements.actions;
 
 import fi.nls.oskari.control.RestActionHandler;
-import org.json.JSONArray;
 import org.oskari.announcements.helpers.AnnouncementsHelper;
 import org.oskari.announcements.model.Announcement;
 import fi.nls.oskari.annotation.OskariActionRoute;
