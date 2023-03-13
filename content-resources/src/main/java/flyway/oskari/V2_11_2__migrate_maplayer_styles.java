@@ -53,11 +53,11 @@ public class V2_11_2__migrate_maplayer_styles extends BaseJavaMigration  {
         for (StyleConfig style: styles) {
             insertStyle(conn, style);
         }
-
+        int count = 0;
         // update appsetup styles
         long mapfullId = getMapfullId(conn);
         Map<Long, JSONObject> states = getAppsetupStates(conn, mapfullId);
-        for (long appId : states.keySet()) {
+        for (Long appId : states.keySet()) {
             boolean update = false;
             JSONObject state = states.get(appId);
             JSONArray stateLayers = JSONHelper.getEmptyIfNull(JSONHelper.getJSONArray(state, "selectedLayers"));
@@ -73,6 +73,7 @@ public class V2_11_2__migrate_maplayer_styles extends BaseJavaMigration  {
             }
             if (update) {
                 try {
+                    count++;
                     updateAppsetupState(conn, mapfullId, appId, state);
                 } catch (SQLException e) {
                     log.error(e, "Error updating mapfull bundle state for appsetup: " + appId);
@@ -80,6 +81,7 @@ public class V2_11_2__migrate_maplayer_styles extends BaseJavaMigration  {
                 }
             }
         }
+        log.info("Updated style id/name for: + " + count + " appsetups");
     }
 
     protected List<StyleConfig> getOskariStyleDefs(OskariLayer layer) {
@@ -98,12 +100,18 @@ public class V2_11_2__migrate_maplayer_styles extends BaseJavaMigration  {
         while(it.hasNext()) {
             String name = (String) it.next();
             JSONObject styleJson = JSONHelper.getJSONObject(stylesJson, name);
-            styles.add(parseOskari(layerId, name, styleJson));
+            StyleConfig style = parseOskari(layerId, name, styleJson);
+            if (style != null) {
+                styles.add(style);
+            }
         }
         return styles;
     }
 
     protected StyleConfig parseOskari (int layerId, String name, JSONObject style) {
+        if (style == null) {
+            return null;
+        }
         // 3D-layers have not required featureStyle
         // for consistency wrap inside featureStyle
         if (isFeatureStyleDef(style)) {
@@ -111,11 +119,16 @@ public class V2_11_2__migrate_maplayer_styles extends BaseJavaMigration  {
         }
         // Bypass possible layer definitions
         if (!style.has("featureStyle") && !style.has("optionalStyles")) {
-            String key = style.keys().next().toString();
+            Iterator itr = style.keys();
+            String key = itr.hasNext() ? itr.next().toString() : "";
             return parseOskari(layerId, name, JSONHelper.getJSONObject(style, key));
         }
+        String title = JSONHelper.optString(style, "title");
+        style.remove("title");
+
         StyleConfig conf = new StyleConfig(layerId, VectorStyle.TYPE_OSKARI, name, style);
-        conf.title = JSONHelper.optString(style, "title");
+        conf.title = title;
+
         return conf;
     }
     private boolean isFeatureStyleDef(JSONObject styleLike) {
@@ -169,10 +182,10 @@ public class V2_11_2__migrate_maplayer_styles extends BaseJavaMigration  {
     protected void insertStyle (Connection conn, StyleConfig style) throws SQLException {
         String name = style.title.isEmpty() ? style.name : style.title;
         final String sql = "INSERT INTO oskari_maplayer_style"
-                + " (layer, type, name, style) VALUES"
+                + " (layer_id, type, name, style) VALUES"
                 + " (?, ?, ?, ?)";
         try (PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            statement.setString(1, Integer.toString(style.layerId));
+            statement.setInt(1, style.layerId);
             statement.setString(2, style.type);
             statement.setString(3, name);
             statement.setString(4, style.def.toString());
