@@ -19,6 +19,7 @@ public class AnalysisDbServiceMybatisImplTest {
     private static Analysis testAnalysis = null;
     private static String testAnalysisName = "testAnalysis";
     private static String testUid = "1000";
+    final String LANG = PropertyUtil.getDefaultLanguage();
 
     @BeforeClass
     public static void init() {
@@ -29,7 +30,7 @@ public class AnalysisDbServiceMybatisImplTest {
     public void setUp() throws ServiceException {
         analysisDbService = OskariComponentManager.getComponentOfType(AnalysisDbService.class);
         testAnalysis = new Analysis();
-        testAnalysis.setName(testAnalysisName);
+        testAnalysis.setName(LANG, testAnalysisName);
         testAnalysis.setUuid(testUid);
     }
 
@@ -38,7 +39,7 @@ public class AnalysisDbServiceMybatisImplTest {
         analysisDbService.insertAnalysisRow(testAnalysis);
         Analysis analysis = analysisDbService.getAnalysisById(testAnalysis.getId());
 
-        assertTrue("Analysis added and found", testAnalysis.getName().equals(analysis.getName()));
+        assertTrue("Analysis added and found", testAnalysis.getName(LANG).equals(analysis.getName(LANG)));
     }
 
     @Test
