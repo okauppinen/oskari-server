@@ -19,7 +19,8 @@ import java.time.format.DateTimeFormatter;
 public class ExportMyPlacesFeaturesHandler extends MyPlacesFeaturesHandler {
     private final static Logger LOG = LogFactory.getLogger(ExportMyPlacesFeaturesHandler.class);
     private static final String PARAM_SRS = "srs";
-    private static final String PARAM_LAYER_ID = "categoryId";
+    private static final String PARAM_CATEGORY_ID = "categoryId";
+    private static final String PARAM_NAME = "name";
     private static final String PARAM_INDENT = "indent";
     private static final String FILE_EXT = "geojson";
     private static final String FILE_TYPE = "application/json";
@@ -31,13 +32,13 @@ public class ExportMyPlacesFeaturesHandler extends MyPlacesFeaturesHandler {
     public void handleGet(ActionParameters params) throws ActionException {
         final User user = params.getUser();
         final String srs = params.getHttpParam(PARAM_SRS, PropertyUtil.get("oskari.native.srs", "EPSG:4326"));
-        final String layerId = params.getRequiredParam(PARAM_LAYER_ID);
+        final String layerId = params.getRequiredParam(PARAM_CATEGORY_ID);
         final int indent = params.getHttpParam(PARAM_INDENT, -1);
+        final String layerName = params.getHttpParam(PARAM_NAME, "");
         final boolean prettify = indent > 0 && indent <= 8;
         try {
 
             JSONObject featureCollection = getFeatures(user, layerId, srs);
-            String layerName = getLayerName(layerId);
             String timestamp = LocalDate.now().format(TIME_FORMAT);
             String fileName = layerName + "_" + timestamp + "." + FILE_EXT;
             HttpServletResponse response = params.getResponse();

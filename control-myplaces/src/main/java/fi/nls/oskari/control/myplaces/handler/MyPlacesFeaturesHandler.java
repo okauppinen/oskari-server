@@ -84,12 +84,6 @@ public class MyPlacesFeaturesHandler extends RestActionHandler {
         }
         return featureService.getFeaturesByCategoryId(categoryId, crs);
     }
-    protected String getLayerName (String layerId) {
-        long categoryId = Long.parseLong(layerId);
-        MyPlaceCategory category = service.findCategory(categoryId);
-        return category != null ? category.getName() : "";
-    }
-
     @Override
     public void handlePost(ActionParameters params) throws ActionException {
         final User user = params.getUser();
