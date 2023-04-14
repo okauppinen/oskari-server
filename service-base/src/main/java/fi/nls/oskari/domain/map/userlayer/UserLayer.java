@@ -10,8 +10,6 @@ public class UserLayer extends UserDataLayer {
     private static final String LOCALE_DESC = "desc";
     private static final String LOCALE_SOURCE = "source";
 
-    private String layer_desc;
-    private String layer_source;
     private JSONArray fields;
     private int features_count;
     private int features_skipped; //if geojson feature doesn't have geometry object or it's null, feature is skipped
@@ -21,31 +19,6 @@ public class UserLayer extends UserDataLayer {
     @Override
     public final String getType() {
         return OskariLayer.TYPE_USERLAYER;
-    }
-
-    @Deprecated
-    public String getLayer_name() {
-        return getName();
-    }
-    @Deprecated
-    public void setLayer_name(String layer_name) {
-        setName(layer_name);
-    }
-    @Deprecated
-    public String getLayer_desc() {
-        return layer_desc;
-    }
-    @Deprecated
-    public void setLayer_desc(String layer_desc) {
-        this.layer_desc = layer_desc;
-    }
-    @Deprecated
-    public String getLayer_source() {
-        return layer_source;
-    }
-    @Deprecated
-    public void setLayer_source(String layer_source) {
-        this.layer_source = layer_source;
     }
 
     public JSONArray getFields() {
