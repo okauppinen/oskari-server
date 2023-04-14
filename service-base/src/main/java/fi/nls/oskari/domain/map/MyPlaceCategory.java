@@ -9,16 +9,6 @@ public class MyPlaceCategory extends UserDataLayer {
         return OskariLayer.TYPE_MYPLACES;
     }
 
-    @Deprecated
-    public String getCategory_name() {
-        return getName();
-    }
-
-    @Deprecated
-    public void setCategory_name(String category_name) {
-        setName(category_name);
-    }
-
     public boolean isDefault() {
         return isDefault;
     }
