@@ -8,7 +8,6 @@
     <resultMap id="AnalysisResult" type="Analysis">
         <result property="id" column="id" />
         <result property="uuid" column="uuid" />
-        <result property="name" column="name" />
         <result property="layer_id" column="layer_id" />
         <result property="analyse_json" column="analyse_json" />
         <result property="col1" column="col1" />
@@ -31,7 +30,6 @@
         select
         id,
         uuid,
-        name,
         layer_id,
         analyse_json,
         col1,
@@ -57,7 +55,6 @@
         select
         id,
         uuid,
-        name,
         layer_id,
         analyse_json,
         col1,
@@ -85,7 +82,6 @@
          select
          id,
          uuid,
-         name,
          layer_id,
          analyse_json,
          col1,
@@ -123,7 +119,6 @@
     <insert id="insertAnalysisRow" parameterType="Analysis" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
         INSERT INTO analysis (
         uuid,
-        name,
         layer_id,
         analyse_json,
         col1,
@@ -142,7 +137,6 @@
         locale
         ) VALUES (
         #{uuid},
-        #{name},
         #{layer_id},
         #{analyse_json},
         #{col1},
