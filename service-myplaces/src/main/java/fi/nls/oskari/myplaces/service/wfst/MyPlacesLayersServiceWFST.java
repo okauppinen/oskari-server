@@ -29,6 +29,7 @@ import fi.nls.oskari.util.IOHelper;
  * For direct database access use
  * @see org.oskari.myplaces.service.mybatis.MyPlacesLayersServiceMybatisImpl
  */
+// TODO is this needed?
 public class MyPlacesLayersServiceWFST extends BaseServiceWFST implements MyPlacesLayersService {
 
     @Override

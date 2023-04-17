@@ -9,7 +9,6 @@
 	    <result property="id" column="id" />
         <result property="uuid" column="uuid" />
         <result property="publisher_name" column="publisher_name" />
-        <result property="category_name" column="category_name" />
         <result property="options" column="options" />
         <result property="locale" column="locale" />
     </resultMap>
@@ -45,7 +44,6 @@
         resultMap="CategoryResult">
         select 
             id, 
-            category_name,
             uuid,
             publisher_name,
             options,
@@ -60,7 +58,6 @@
              resultMap="CategoryResult">
         select 
             id, 
-            category_name,
             uuid,
             publisher_name,
             options,

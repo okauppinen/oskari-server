@@ -15,6 +15,7 @@ import org.oskari.permissions.model.Resource;
 
 import java.util.List;
 
+// TODO: layer and feature services??
 public abstract class MyPlacesService extends OskariComponent {
 
     public static final String PERMISSION_TYPE_DRAW = "DRAW";
@@ -72,18 +73,6 @@ public abstract class MyPlacesService extends OskariComponent {
 
     public String getClientWMSUrl() {
         return MYPLACES_CLIENT_WMS_URL;
-    }
-
-    // FIXME: remove hard-coded name from server side
-    // This is a quick fix for common supported languages
-    // frontend does this, but embedded maps don't have the same code as layers are shown with WMS
-    private String getLayerUIName(String lang) {
-        if (lang.equalsIgnoreCase("fi")) {
-            return "Oma karttataso";
-        } else if (lang.equalsIgnoreCase("sv")) {
-            return "Mitt kartlager";
-        }
-        return "My map layer";
     }
 
 

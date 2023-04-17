@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+// TODO: is this needed?
 @Oskari
 public class MyPlacesServiceMybatisImpl extends MyPlacesService {
 
