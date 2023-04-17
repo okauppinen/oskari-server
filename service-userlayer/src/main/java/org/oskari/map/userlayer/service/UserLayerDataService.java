@@ -50,28 +50,10 @@ public class UserLayerDataService {
 
     private static final int USERLAYER_BASE_LAYER_ID = PropertyUtil.getOptional(USERLAYER_BASELAYER_ID, -1);
 
-    @Deprecated
-    public static UserLayer createUserLayer(SimpleFeatureCollection fc,
-            String uuid, String name, String desc, String source, String style) {
-        final SimpleFeatureType ft = fc.getSchema();
-        final UserLayer userLayer = new UserLayer();
-        userLayer.setUuid(uuid);
-        String ftName = ft.getTypeName();
-        userLayer.setName(ConversionHelper.getString(ftName, name));
-        userLayer.setName(PropertyUtil.getDefaultLanguage(), ConversionHelper.getString(name, ftName)); // FIXME: userLayer.setLocale(locale);
-        userLayer.setLayer_desc(ConversionHelper.getString(desc, ""));
-        userLayer.setLayer_source(ConversionHelper.getString(source, ""));
-        WFSLayerOptions wfsOptions = userLayer.getWFSLayerOptions();
-        wfsOptions.setDefaultFeatureStyle(JSONHelper.createJSONObject(style));
-        userLayer.setFields(parseFields(ft));
-        userLayer.setWkt(getWGS84ExtentAsWKT(fc));
-        return userLayer;
-    }
     public static UserLayer createUserLayer(SimpleFeatureCollection fc, String uuid, JSONObject locale, JSONObject style) {
         final SimpleFeatureType ft = fc.getSchema();
         final UserLayer userLayer = new UserLayer();
         userLayer.setUuid(uuid);
-        userLayer.setLayer_name(ft.getTypeName());
         userLayer.setLocale(locale);
         WFSLayerOptions wfsOptions = userLayer.getWFSLayerOptions();
         wfsOptions.setDefaultFeatureStyle(style);
