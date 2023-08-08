@@ -36,6 +36,7 @@ public class GetWFSFeaturesHandler extends AbstractWFSFeaturesHandler {
     protected static final String ERR_TIMEOUT = "Request to backing service timed out";
     protected static final String ERR_FAILED_TO_RETRIEVE_FEATURES = "Failed to retrieve features";
     protected static final String ERR_GEOJSON_ENCODE_FAIL = "Failed to write GeoJSON";
+    private static final String HEADER_MAX_FEATURES = "Oskari-Max-Features-Exceeded";
 
     private static final String PARAM_BBOX = "bbox";
 
@@ -72,7 +73,9 @@ public class GetWFSFeaturesHandler extends AbstractWFSFeaturesHandler {
                     GEOJSON_CONTENT_TYPE, EMPTY_GEOJSON_FEATURE_COLLECTION);
             return;
         }
-
+        if (fc.size() >= OskariWFSClient.getMaxFeatures(layer)) {
+            params.getResponse().addHeader(HEADER_MAX_FEATURES, "true");
+        }
         try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             OutputStreamWriter writer = new OutputStreamWriter(baos, StandardCharsets.UTF_8);
