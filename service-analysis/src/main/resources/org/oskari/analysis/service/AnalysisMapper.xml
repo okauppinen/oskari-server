@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.oskari.analysis.service.AnalysisMapper">
+
+    <resultMap id="AnalysisResult" type="Analysis">
+        <result property="id" column="id" />
+        <result property="uuid" column="uuid" />
+        <result property="publisher_name" column="publisher_name" />
+        <result property="options" column = "options" />
+        <result property="locale" column = "locale" />
+        <result property="config" column = "config" />
+        <result property="created" column = "created" jdbcType="TIMESTAMP" javaType="java.time.OffsetDateTime" />
+        <result property="updated" column = "updated" jdbcType="TIMESTAMP" javaType="java.time.OffsetDateTime" />
+    </resultMap>
+
+    <resultMap id="AnalysisDataResult" type="AnalysisData">
+        <result property="id" column="id" />
+        <result property="analysisId" column="analysis_id" />
+        <result property="uuid" column="uuid" />
+        <result property="properties" column="property_json" />
+        <result property="created" column = "created" jdbcType="TIMESTAMP" javaType="java.time.OffsetDateTime" />
+        <result property="updated" column = "updated" jdbcType="TIMESTAMP" javaType="java.time.OffsetDateTime" />
+    </resultMap>
+
+	<insert id="insertAnalysis" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+		INSERT INTO analysis (
+            uuid,
+            publisher_name,
+            config,
+            options,
+            locale
+        ) VALUES (
+            #{uuid},
+            #{publisher_name},
+            CAST (#{config} as json),
+            CAST (#{options} as json),
+            CAST (#{locale} as json)
+        )
+    </insert>
+
+    <select id="findAnalysisByUuid" resultMap="AnalysisResult" useCache="false">
+        select
+            id,
+            uuid,
+            publisher_name,
+            config,
+            options,
+            locale,
+            created,
+            updated
+        from
+            analysis
+        where uuid = #{uuid} 
+    </select>
+
+    <update id="updatePublisherName">
+        update user_layer set
+            publisher_name = #{publisher_name}
+        where uuid = #{uuid} and id = #{id}
+    </update>
+
+
+
+	<!-- UserLayerData related-->
+	<insert id="insertAnalysisData" useGeneratedKeys="true" keyProperty="analysis_data.id" keyColumn="id">
+        INSERT INTO analysis_data
+        (
+            analysis_id,
+            uuid,
+            property_json,
+            geometry
+        ) VALUES (
+            #{analysisId},
+            #{data.uuid},
+            CAST(#{data.properties} as json),
+            ST_SetSRID(ST_GeomFromGeoJSON(#{data.geometry}), #{srid})
+        )
+    </insert>
+
+	<delete id="deleteAnalysisDataByLayerId">
+        DELETE FROM user_layer_data WHERE user_layer_id = #{userLayerId}
+    </delete>
+
+</mapper>
