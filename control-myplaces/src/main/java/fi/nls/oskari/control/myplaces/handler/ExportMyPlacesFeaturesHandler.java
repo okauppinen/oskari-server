@@ -4,6 +4,7 @@ import fi.nls.oskari.annotation.OskariActionRoute;
 import fi.nls.oskari.control.ActionException;
 import fi.nls.oskari.control.ActionParameters;
 import fi.nls.oskari.domain.User;
+import fi.nls.oskari.domain.map.MyPlace;
 import fi.nls.oskari.log.LogFactory;
 import fi.nls.oskari.log.Logger;
 import fi.nls.oskari.service.ServiceException;
@@ -14,6 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 @OskariActionRoute("ExportMyPlacesLayerFeatures")
 public class ExportMyPlacesFeaturesHandler extends MyPlacesFeaturesHandler {
@@ -36,7 +38,8 @@ public class ExportMyPlacesFeaturesHandler extends MyPlacesFeaturesHandler {
         final boolean prettify = indent > 0 && indent <= 8;
         try {
 
-            JSONObject featureCollection = getFeatures(user, layerId, srs);
+            List<MyPlace> myPlaces = getFeatures(user, layerId);
+            JSONObject featureCollection = createFeatureCollection(myPlaces, srs);
             String layerName = getLayerName(layerId);
             String timestamp = LocalDate.now().format(TIME_FORMAT);
             String fileName = layerName + "_" + timestamp + "." + FILE_EXT;

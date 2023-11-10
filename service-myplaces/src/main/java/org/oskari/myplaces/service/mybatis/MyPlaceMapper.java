@@ -1,4 +1,4 @@
-package fi.nls.oskari.myplaces;
+package org.oskari.myplaces.service.mybatis;
 
 import fi.nls.oskari.domain.map.MyPlace;
 import fi.nls.oskari.domain.map.MyPlaceCategory;
@@ -9,6 +9,7 @@ import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.ResultMap;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
+import org.geotools.geometry.jts.ReferencedEnvelope;
 
 import java.util.List;
 import java.util.Map;
@@ -29,8 +30,7 @@ public interface MyPlaceMapper {
             " place_desc, " +
             " link, " +
             " image_url, " +
-            " ST_ASTEXT(geometry) as wkt, "+
-            " ST_SRID(geometry) as srid "+
+            " ST_AsGeoJSON(geometry), "+
             " FROM my_places " +
             " WHERE "+
             " uuid = #{uuid} ")
@@ -48,8 +48,7 @@ public interface MyPlaceMapper {
             " place_desc, " +
             " link, " +
             " image_url, " +
-            " ST_ASTEXT(geometry) as wkt, "+
-            " ST_SRID(geometry) as srid "+
+            " ST_AsGeoJSON(geometry), "+
             " FROM my_places " +
             " WHERE "+
             " category_id = #{categoryId} ")
@@ -67,8 +66,7 @@ public interface MyPlaceMapper {
             " place_desc, " +
             " link, " +
             " image_url, " +
-            " ST_ASTEXT(geometry) as wkt, "+
-            " ST_SRID(geometry) as srid "+
+            " ST_AsGeoJSON(geometry), "+
             " FROM my_places " +
             " WHERE "+
             " id=ANY(#{ids}) ")
@@ -86,21 +84,15 @@ public interface MyPlaceMapper {
             " place_desc, " +
             " link, " +
             " image_url, " +
-            " ST_ASTEXT(geometry) as wkt, " +
-            " ST_SRID(geometry) as srid " +
+            " ST_AsGeoJSON(geometry), "+
             " FROM my_places " +
             " WHERE "+
             " category_id = #{categoryId} " +
             " AND " +
             " ST_INTERSECTS(" +
-            "   ST_MAKEENVELOPE(#{minX}, #{minY}, #{maxX}, #{maxY}, #{srid}), " +
+            "   ST_MAKEENVELOPE(#{bbox.minX}, #{bbox.minY}, #{bbox.maxX}, #{bbox.maxY}, #{srid}), " +
         "       geometry)")
-    List<MyPlace> findAllByBBOX(@Param("categoryId") int categoryId,
-                                @Param("minX") double minX,
-                                @Param("minY") double minY,
-                                @Param("maxX") double maxX,
-                                @Param("maxY") double maxY,
-                                @Param("srid") int srid);
+    List<MyPlace> findAllByBBOX(@Param("categoryId") int categoryId, @Param("bbox") ReferencedEnvelope bbox, @Param("srid") int srid);
     MyPlace findPlace(long id);
     MyPlaceCategory find(long categoryId);
     @Update("update categories set " +
@@ -130,7 +122,7 @@ public interface MyPlaceMapper {
             " #{name}, " +
             " #{attentionText}, " +
             " now(), " +
-            " ST_SetSRID(ST_GeometryFromText(#{wkt}), #{applicationSRID}), " +
+            " ST_GeomFromGeoJSON(#{geometry}) " +
             " #{desc}, " +
             " #{link}, " +
             " #{imageUrl} " +
@@ -143,7 +135,7 @@ public interface MyPlaceMapper {
             " name = #{name}, " +
             " attention_text = #{attentionText}, " +
             " updated = now(), " +
-            " geometry = ST_SetSRID(ST_GeometryFromText(#{wkt}), #{applicationSRID}), " +
+            " geometry = ST_GeomFromGeoJSON(#{geometry}), " +
             " place_desc = #{desc}, " +
             " link = #{link}, " +
             " image_url = #{imageUrl} " +

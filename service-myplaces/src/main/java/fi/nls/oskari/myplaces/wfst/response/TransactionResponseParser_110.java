@@ -1,5 +1,4 @@
-package org.oskari.wfst.response;
-
+package fi.nls.oskari.myplaces.wfst.response;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;

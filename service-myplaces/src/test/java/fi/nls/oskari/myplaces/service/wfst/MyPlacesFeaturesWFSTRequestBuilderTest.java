@@ -13,10 +13,10 @@ import java.util.UUID;
 
 import org.junit.Ignore;
 import org.junit.Test;
-import org.oskari.wfst.response.TransactionResponseParser_100;
-import org.oskari.wfst.response.TransactionResponseParser_110;
-import org.oskari.wfst.response.TransactionResponse_100;
-import org.oskari.wfst.response.TransactionResponse_110;
+import fi.nls.oskari.myplaces.wfst.response.TransactionResponseParser_100;
+import fi.nls.oskari.myplaces.wfst.response.TransactionResponseParser_110;
+import fi.nls.oskari.myplaces.wfst.response.TransactionResponse_100;
+import fi.nls.oskari.myplaces.wfst.response.TransactionResponse_110;
 
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;

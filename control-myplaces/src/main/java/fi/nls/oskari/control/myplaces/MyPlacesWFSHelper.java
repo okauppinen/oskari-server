@@ -5,8 +5,9 @@ import fi.nls.oskari.domain.User;
 import fi.nls.oskari.domain.map.MyPlace;
 import fi.nls.oskari.domain.map.MyPlaceCategory;
 import fi.nls.oskari.domain.map.OskariLayer;
-import fi.nls.oskari.myplaces.MyPlacesService;
-import fi.nls.oskari.myplaces.service.MyPlacesFeaturesService;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.oskari.myplaces.service.MyPlacesService;
+import org.oskari.myplaces.service.MyPlacesFeaturesService;
 import fi.nls.oskari.service.OskariComponentManager;
 import fi.nls.oskari.service.ServiceException;
 import fi.nls.oskari.util.JSONHelper;
@@ -22,14 +23,12 @@ import org.geotools.referencing.CRS;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.locationtech.jts.geom.Geometry;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.filter.Filter;
 import org.opengis.filter.FilterFactory;
 import org.opengis.filter.expression.Expression;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.oskari.geojson.GeoJSONFeatureCollection;
 import org.oskari.geojson.GeoJSONReader;
 import org.oskari.myplaces.service.mybatis.MyPlacesFeaturesServiceMybatisImpl;
@@ -166,34 +165,17 @@ public class MyPlacesWFSHelper extends UserLayerService {
     public static List<MyPlace> parseMyPlaces(String input, boolean shouldSetId)
             throws JSONException {
         JSONObject featureCollection = new JSONObject(input);
-        // Expect custom key featureCollection.srsName to contain srid in pattern of 'EPSG:srid'
-        // if that doesn't exist or if we fail to parse the srid part out of it use 0 (unknown)
-        String srsName = JSONHelper.optString(featureCollection, "srsName");
-        int srid = getSrid(srsName, 0);
         JSONArray features = featureCollection.getJSONArray("features");
         final int n = features.length();
         List<MyPlace> myPlaces = new ArrayList<>(n);
         for (int i = 0; i < n; i++) {
             JSONObject feature = features.getJSONObject(i);
-            myPlaces.add(parseMyPlace(feature, shouldSetId, srid));
+            myPlaces.add(parseMyPlace(feature, shouldSetId));
         }
         return myPlaces;
     }
 
-    private static int getSrid(String srsName, int defaultValue) {
-        if (srsName != null) {
-            int i = srsName.lastIndexOf(':');
-            if (i > 0) {
-                srsName = srsName.substring(i + 1);
-            }
-            try {
-                return Integer.parseInt(srsName);
-            } catch (NumberFormatException ignroe) {}
-        }
-        return defaultValue;
-    }
-
-    private static MyPlace parseMyPlace(JSONObject feature, boolean shouldSetId, int srid)
+    private static MyPlace parseMyPlace(JSONObject feature, boolean shouldSetId)
             throws JSONException {
         MyPlace myPlace = new MyPlace();
 
@@ -203,9 +185,7 @@ public class MyPlacesWFSHelper extends UserLayerService {
         myPlace.setCategoryId(feature.getLong("category_id"));
 
         JSONObject geomJSON = feature.getJSONObject("geometry");
-        Geometry geom = GeoJSONReader.toGeometry(geomJSON);
-        geom.setSRID(srid);
-        myPlace.setGeometry(geom);
+        myPlace.setGeoJson(geomJSON.toString());
 
         JSONObject properties = feature.getJSONObject("properties");
         myPlace.setName(JSONHelper.getString(properties, "name"));
@@ -221,17 +201,10 @@ public class MyPlacesWFSHelper extends UserLayerService {
 
     @Override
     public SimpleFeatureCollection getFeatures(String layerId, OskariLayer layer, ReferencedEnvelope bbox, CoordinateReferenceSystem crs) throws ServiceException{
-            try {
-                int categoryId = parseId(layerId);
-                JSONObject featureCollectionJSON = featureService.getFeatures(categoryId, bbox, crs);
+        int categoryId = parseId(layerId);
+        List<MyPlace> myPlaces = featureService.getFeatures(categoryId, bbox);
+        // TODO: return GeoJSON collection
 
-                if (featureCollectionJSON == null) {
-                    return new EmptyFeatureCollection(null);
-                }
-                SimpleFeatureCollection featureCollection = GeoJSONReader.toFeatureCollection(featureCollectionJSON);
-                return featureCollection != null ? featureCollection : new EmptyFeatureCollection(null);
-            } catch (JSONException e) {
-                throw new ServiceException("GetFeatures failed.", e);
-            }
+        return new EmptyFeatureCollection(null);
     }
 }

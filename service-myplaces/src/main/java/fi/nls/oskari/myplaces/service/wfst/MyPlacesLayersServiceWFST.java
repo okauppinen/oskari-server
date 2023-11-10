@@ -11,11 +11,11 @@ import javax.xml.stream.XMLStreamException;
 
 import fi.nls.oskari.cache.Cache;
 import fi.nls.oskari.cache.CacheManager;
-import fi.nls.oskari.myplaces.MyPlacesServiceMybatisImpl;
+import org.oskari.myplaces.service.mybatis.MyPlacesServiceMybatisImpl;
 import org.json.JSONException;
-import org.oskari.wfst.response.InsertedFeature;
-import org.oskari.wfst.response.TransactionResponseParser_110;
-import org.oskari.wfst.response.TransactionResponse_110;
+import fi.nls.oskari.myplaces.wfst.response.InsertedFeature;
+import fi.nls.oskari.myplaces.wfst.response.TransactionResponseParser_110;
+import fi.nls.oskari.myplaces.wfst.response.TransactionResponse_110;
 import org.xml.sax.SAXException;
 
 import fi.nls.oskari.domain.map.MyPlaceCategory;

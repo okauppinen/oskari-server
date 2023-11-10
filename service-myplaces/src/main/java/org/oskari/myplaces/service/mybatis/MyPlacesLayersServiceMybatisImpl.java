@@ -10,8 +10,7 @@ import javax.sql.DataSource;
 
 import fi.nls.oskari.cache.Cache;
 import fi.nls.oskari.cache.CacheManager;
-import fi.nls.oskari.myplaces.MyPlacesServiceMybatisImpl;
-import fi.nls.oskari.myplaces.UserContentMyPlacesService;
+import org.oskari.myplaces.service.UserContentMyPlacesService;
 import org.apache.ibatis.mapping.Environment;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.ExecutorType;
@@ -26,8 +25,9 @@ import fi.nls.oskari.log.LogFactory;
 import fi.nls.oskari.log.Logger;
 import fi.nls.oskari.mybatis.JSONObjectMybatisTypeHandler;
 import fi.nls.oskari.mybatis.MyBatisHelper;
-import fi.nls.oskari.myplaces.service.MyPlacesLayersService;
+import org.oskari.myplaces.service.MyPlacesLayersService;
 import fi.nls.oskari.service.ServiceException;
+
 
 /**
  * MyBatis implementation of MyPlacesLayersService

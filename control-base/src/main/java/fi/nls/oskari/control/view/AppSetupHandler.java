@@ -12,7 +12,7 @@ import fi.nls.oskari.map.analysis.service.AnalysisDbService;
 import fi.nls.oskari.map.layer.OskariLayerService;
 import fi.nls.oskari.map.view.*;
 import fi.nls.oskari.map.view.util.ViewHelper;
-import fi.nls.oskari.myplaces.MyPlacesService;
+import org.oskari.myplaces.service.MyPlacesService;
 import fi.nls.oskari.util.ConversionHelper;
 import fi.nls.oskari.util.JSONHelper;
 import fi.nls.oskari.util.PropertyUtil;

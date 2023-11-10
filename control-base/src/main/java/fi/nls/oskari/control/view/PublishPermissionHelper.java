@@ -14,7 +14,7 @@ import fi.nls.oskari.log.LogFactory;
 import fi.nls.oskari.log.Logger;
 import fi.nls.oskari.map.analysis.service.AnalysisDbService;
 import fi.nls.oskari.map.layer.OskariLayerService;
-import fi.nls.oskari.myplaces.MyPlacesService;
+import org.oskari.myplaces.service.MyPlacesService;
 import fi.nls.oskari.service.OskariComponentManager;
 import fi.nls.oskari.service.UserService;
 import fi.nls.oskari.util.ConversionHelper;

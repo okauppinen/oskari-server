@@ -12,8 +12,9 @@ import fi.nls.oskari.domain.map.MyPlace;
 import fi.nls.oskari.domain.map.MyPlaceCategory;
 import fi.nls.oskari.log.LogFactory;
 import fi.nls.oskari.log.Logger;
-import fi.nls.oskari.myplaces.MyPlacesService;
-import fi.nls.oskari.myplaces.service.MyPlacesFeaturesService;
+import fi.nls.oskari.util.PropertyUtil;
+import org.oskari.myplaces.service.MyPlacesService;
+import org.oskari.myplaces.service.MyPlacesFeaturesService;
 import fi.nls.oskari.service.OskariComponentManager;
 import fi.nls.oskari.service.ServiceException;
 import fi.nls.oskari.util.IOHelper;
@@ -37,7 +38,7 @@ public class MyPlacesFeaturesHandler extends RestActionHandler {
     private final static Logger LOG = LogFactory.getLogger(MyPlacesFeaturesHandler.class);
 
     private static final String PARAM_FEATURES = "features";
-    private static final String PARAM_CRS = "crs";
+    private static final String PARAM_SRS = "srs";
     private static final String PARAM_LAYER_ID = "layerId";
     private static final String JSKEY_DELETED = "deleted";
 
@@ -58,46 +59,29 @@ public class MyPlacesFeaturesHandler extends RestActionHandler {
     @Override
     public void handleGet(ActionParameters params) throws ActionException {
         final User user = params.getUser();
-        final String crs = params.getHttpParam(PARAM_CRS, "EPSG:3067");
-        final String layerId = params.getHttpParam(PARAM_LAYER_ID);
-
+        final String layerId = params.getHttpParam(PARAM_LAYER_ID, "");
         try {
-            final JSONObject featureCollection = getFeatures(user, layerId, crs);
-            ResponseHelper.writeResponse(params, featureCollection != null ? featureCollection : createEmptyFeatureCollection());
+            writeFeatureResponse(params, getFeatures(user, layerId));
         } catch (ServiceException e) {
             LOG.warn(e);
             throw new ActionException("Failed to get features");
         }
     }
 
-    private JSONObject createEmptyFeatureCollection() throws ActionException{
-        JSONObject json = new JSONObject();
-        try {
-            json.put(GeoJSON.TYPE, GeoJSON.FEATURE_COLLECTION);
-            json.put(GeoJSON.FEATURES, new JSONArray());
-            return json;
-        } catch(JSONException ex) {
-            LOG.warn("Failed to create empty featurecollection json.");
-            throw new ActionException("Failed to create empty featurecollection json.");
-        }
+    protected List<MyPlace> getFeatures (User user, String layerId) throws ActionDeniedException, ServiceException {
+        if (layerId.isEmpty()) {
+            LOG.debug("Get MyPlaces by user uuid, uuid:", user.getUuid());
 
-    }
-    protected JSONObject getFeatures (User user, String layerId, String crs) throws ActionDeniedException, ServiceException {
-        if (layerId == null || layerId.isEmpty()) {
-            LOG.debug("Get MyPlaces by user uuid, uuid:", user.getUuid(),
-                    "crs:", crs);
-
-            JSONObject features = featureService.getFeaturesByUserId(user.getUuid(), crs);
-            return features;
+            return featureService.getFeaturesByUserId(user.getUuid());
         }
         LOG.debug("Get MyPlaces by layer id, uuid:", user.getUuid(),
-                "layerId:", layerId, "crs:", crs);
+                "layerId:", layerId);
         long categoryId = Long.parseLong(layerId);
         if (!service.canModifyCategory(user, categoryId)) {
             throw new ActionDeniedException(
                     "Tried to GET features from category: " + categoryId);
         }
-        return featureService.getFeaturesByCategoryId(categoryId, crs);
+        return featureService.getFeaturesByCategoryId(categoryId);
     }
     protected String getLayerName (String layerId) {
         long categoryId = Long.parseLong(layerId);
@@ -108,13 +92,11 @@ public class MyPlacesFeaturesHandler extends RestActionHandler {
     @Override
     public void handlePost(ActionParameters params) throws ActionException {
         final User user = params.getUser();
-        final String crs = params.getHttpParam(PARAM_CRS, "EPSG:3067");
         final List<MyPlace> places = readMyPlaces(params, false);
         checkUserCanUseModifyCategories(user, places);
         for (MyPlace place : places) {
             place.setUuid(user.getUuid());
         }
-
         long[] ids;
         try {
             ids = featureService.insert(places);
@@ -131,7 +113,7 @@ public class MyPlacesFeaturesHandler extends RestActionHandler {
         }
 
         try {
-            ResponseHelper.writeResponse(params, featureService.getFeaturesByMyPlaceId(ids, crs));
+            ResponseHelper.writeResponse(params, featureService.getFeaturesByMyPlaceId(ids));
         } catch (ServiceException e) {
             LOG.warn(e);
             throw new ActionException("Failed to get features after insert");
@@ -141,7 +123,6 @@ public class MyPlacesFeaturesHandler extends RestActionHandler {
     @Override
     public void handlePut(ActionParameters params) throws ActionException {
         final User user = params.getUser();
-        final String crs = params.getHttpParam(PARAM_CRS, "EPSG:3067");
         final List<MyPlace> places = readMyPlaces(params, true);
         checkUserCanModifyPlaces(user, places);
         for (MyPlace place : places) {
@@ -153,7 +134,7 @@ public class MyPlacesFeaturesHandler extends RestActionHandler {
         try {
             LOG.debug("Updating MyPlaces:", ids);
             int updated = featureService.update(places);
-            LOG.info("Updated", updated, "/", places.size());
+            LOG.debug("Updated", updated, "/", places.size());
         } catch (ServiceException e) {
             LOG.warn(e);
             throw new ActionException("Failed to update features");
@@ -167,7 +148,7 @@ public class MyPlacesFeaturesHandler extends RestActionHandler {
         }
 
         try {
-            ResponseHelper.writeResponse(params, featureService.getFeaturesByMyPlaceId(ids, crs));
+            writeFeatureResponse(params, featureService.getFeaturesByMyPlaceId(ids));
         } catch (ServiceException e) {
             LOG.warn(e);
             throw new ActionException("Failed to get features after update");
@@ -204,6 +185,33 @@ public class MyPlacesFeaturesHandler extends RestActionHandler {
         JSONObject response = new JSONObject();
         JSONHelper.putValue(response, JSKEY_DELETED, deleted);
         ResponseHelper.writeResponse(params, response);
+    }
+    private void writeFeatureResponse (ActionParameters params, List<MyPlace> features) throws ActionException {
+        final String srs = params.getHttpParam(PARAM_SRS);
+        String nativeSRS = PropertyUtil.get("oskari.native.srs", "EPSG:4326");
+        boolean transform = srs != null && !nativeSRS.equals(srs);
+        if (transform) {
+
+        }
+        JSONObject featureCollection = createFeatureCollection(features, srs);
+        ResponseHelper.writeResponse(params, featureCollection);
+    }
+    protected JSONObject createFeatureCollection(List<MyPlace> myPlaces, String srs) throws ActionException{
+        JSONObject json = new JSONObject();
+        JSONArray features = new JSONArray();
+        try {
+            json.put(GeoJSON.TYPE, GeoJSON.FEATURE_COLLECTION);
+            json.put(GeoJSON.FEATURES, features);
+            myPlaces.forEach(myPlace -> {
+                JSONObject feature = JSONHelper.createJSONObject(myPlace.getGeometry());
+                features.put(feature);
+            });
+            return json;
+        } catch(JSONException ex) {
+            LOG.warn("Failed to create empty featurecollection json.");
+            throw new ActionException("Failed to create empty featurecollection json.");
+        }
+
     }
 
     private List<MyPlace> readMyPlaces(ActionParameters params, boolean checkId)

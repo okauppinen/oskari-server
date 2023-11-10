@@ -9,9 +9,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.oskari.wfst.response.InsertedFeature;
-import org.oskari.wfst.response.TransactionResponseParser_100;
-import org.oskari.wfst.response.TransactionResponse_100;
+import fi.nls.oskari.myplaces.wfst.response.InsertedFeature;
+import fi.nls.oskari.myplaces.wfst.response.TransactionResponseParser_100;
+import fi.nls.oskari.myplaces.wfst.response.TransactionResponse_100;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;

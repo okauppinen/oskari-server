@@ -1,10 +1,12 @@
-package fi.nls.oskari.myplaces;
+package org.oskari.myplaces.service;
 
 import fi.nls.oskari.annotation.Oskari;
 import fi.nls.oskari.db.DatasourceHelper;
 import fi.nls.oskari.domain.User;
 import fi.nls.oskari.service.ServiceException;
 import fi.nls.oskari.service.db.UserContentService;
+
+import org.oskari.myplaces.service.mybatis.MyPlacesServiceMybatisImpl;
 
 @Oskari("myplaces")
 public class UserContentMyPlacesService extends UserContentService {

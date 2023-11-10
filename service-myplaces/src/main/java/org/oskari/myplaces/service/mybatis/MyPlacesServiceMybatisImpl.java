@@ -1,4 +1,4 @@
-package fi.nls.oskari.myplaces;
+package org.oskari.myplaces.service.mybatis;
 
 import fi.nls.oskari.annotation.Oskari;
 import fi.nls.oskari.cache.Cache;
@@ -10,8 +10,6 @@ import fi.nls.oskari.domain.map.MyPlaceCategory;
 import fi.nls.oskari.log.LogFactory;
 import fi.nls.oskari.log.Logger;
 import fi.nls.oskari.mybatis.MyBatisHelper;
-import fi.nls.oskari.ontology.domain.Keyword;
-import fi.nls.oskari.ontology.service.KeywordMapper;
 import fi.nls.oskari.service.OskariComponentManager;
 import fi.nls.oskari.util.ConversionHelper;
 import org.apache.ibatis.session.Configuration;
@@ -21,6 +19,8 @@ import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.oskari.permissions.PermissionService;
 import org.oskari.permissions.model.Resource;
 import org.oskari.permissions.model.ResourceType;
+import org.oskari.myplaces.service.MyPlacesService;
+import org.oskari.myplaces.service.UserContentMyPlacesService;
 
 import javax.sql.DataSource;
 import java.util.Collections;

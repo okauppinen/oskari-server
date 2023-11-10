@@ -1,6 +1,9 @@
-package fi.nls.oskari.myplaces;
+package org.oskari.myplaces.service;
 
+import fi.nls.oskari.control.ActionConstants;
+import fi.nls.oskari.control.ActionParamsException;
 import fi.nls.oskari.domain.User;
+import fi.nls.oskari.domain.map.MyPlace;
 import fi.nls.oskari.domain.map.MyPlaceCategory;
 import fi.nls.oskari.domain.map.OskariLayer;
 import fi.nls.oskari.domain.map.wfs.WFSLayerOptions;
@@ -12,12 +15,25 @@ import fi.nls.oskari.map.layer.formatters.LayerJSONFormatterMYPLACES;
 import fi.nls.oskari.map.style.VectorStyleService;
 import fi.nls.oskari.service.OskariComponent;
 import fi.nls.oskari.service.OskariComponentManager;
+import fi.nls.oskari.service.ServiceException;
 import fi.nls.oskari.util.PropertyUtil;
+import org.geotools.geometry.jts.JTS;
+import org.geotools.referencing.CRS;
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
+import org.locationtech.jts.geom.Geometry;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.operation.MathTransform;
+import org.oskari.geojson.GeoJSON;
 import org.oskari.permissions.model.Resource;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
+import static fi.nls.oskari.map.geometry.ProjectionHelper.getSRID;
+
+/* For wfs-t */
 public abstract class MyPlacesService extends OskariComponent {
 
     public static final String PERMISSION_TYPE_DRAW = "DRAW";
@@ -82,28 +98,80 @@ public abstract class MyPlacesService extends OskariComponent {
         return category;
     }
 
-    public String getClientWMSUrl() {
-        return MYPLACES_CLIENT_WMS_URL;
-    }
-
-    // FIXME: remove hard-coded name from server side
-    // This is a quick fix for common supported languages
-    // frontend does this, but embedded maps don't have the same code as layers are shown with WMS
-    private String getLayerUIName(String lang) {
-        if (lang.equalsIgnoreCase("fi")) {
-            return "Oma karttataso";
-        } else if (lang.equalsIgnoreCase("sv")) {
-            return "Mitt kartlager";
-        }
-        return "My map layer";
-    }
-
 
     public static JSONObject parseLayerToJSON (final MyPlaceCategory mpLayer, final String srs) {
-        return parseLayerToJSON(mpLayer, srs, PropertyUtil.getDefaultLanguage());
+        return FORMATTER.getJSON(getBaseLayer(), mpLayer, srs, PropertyUtil.getDefaultLanguage());
     }
+
     public static JSONObject parseLayerToJSON (final MyPlaceCategory mpLayer, final String srs, final String lang) {
         return FORMATTER.getJSON(getBaseLayer(), mpLayer, srs, lang);
+    }
+
+    private Geometry transformGeometry(Geometry geometry, String sourceSRSName, String targetSRSName) {
+        try {
+            CoordinateReferenceSystem targetCRS, sourceCRS;
+            MathTransform transform;
+
+            try {
+                targetCRS = CRS.decode(targetSRSName);
+                sourceCRS = CRS.decode(sourceSRSName);
+                transform = CRS.findMathTransform(sourceCRS, targetCRS);
+            } catch (Exception e) {
+                throw new ActionParamsException("Invalid " + ActionConstants.PARAM_SRS);
+            }
+            Geometry transformed = JTS.transform(geometry, transform);
+            transformed.setSRID(getSRID(targetSRSName));
+            return transformed;
+
+        } catch(Exception e) {
+            LOGGER.warn(e, "Exception transforming geometry");
+        }
+        return null;
+    }
+    private JSONObject toGeoJSONFeatureCollection(List<MyPlace> places, String targetSRSName) throws ServiceException {
+        if (places == null || places.isEmpty()) {
+            return null;
+        }
+        JSONObject json = new JSONObject();
+        try {
+            json.put(GeoJSON.TYPE, GeoJSON.FEATURE_COLLECTION);
+            // json.put("crs", geojsonWriter.writeCRSObject(targetSRSName));
+
+            JSONArray features = new JSONArray(places.stream().map(place -> this.toGeoJSONFeature(place, targetSRSName)).collect(Collectors.toList()));
+            json.put(GeoJSON.FEATURES, features);
+
+        } catch(JSONException ex) {
+            LOGGER.warn("Failed to create GeoJSON FeatureCollection");
+            throw new ServiceException("Failed to create GeoJSON FeatureCollection");
+        }
+        return json;
+    }
+
+    private JSONObject toGeoJSONFeature(MyPlace place, String targetSRSName) {
+        JSONObject feature = new JSONObject();
+        JSONObject properties = new JSONObject();
+        try {
+            feature.put("id", place.getId());
+            feature.put("geometry_name", GeoJSON.GEOMETRY);
+            feature.put(GeoJSON.TYPE, GeoJSON.FEATURE);
+
+            feature.put(GeoJSON.GEOMETRY, place.getGeometry());
+
+            properties.put("attention_text", place.getAttentionText());
+            properties.put("category_id", place.getCategoryId());
+            properties.put("created", place.getCreated());
+            properties.put("image_url", place.getImageUrl());
+            properties.put("link", place.getLink());
+            properties.put("name", place.getName());
+            properties.put("place_desc", place.getDesc());
+            properties.put("updated", place.getUpdated());
+            feature.put("properties", properties);
+
+        } catch(JSONException ex) {
+            LOGGER.warn("Failed to convert MyPlace to GeoJSONFeature");
+        }
+
+        return feature;
     }
 
 

@@ -1,4 +1,4 @@
-package org.oskari.wfst.response;
+package fi.nls.oskari.myplaces.wfst.response;
 
 public class InsertedFeature {
 

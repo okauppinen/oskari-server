@@ -33,9 +33,8 @@
         <result property="desc" column="place_desc" />
         <result property="link" column="link" />
         <result property="imageUrl" column="image_url" />
-        <result property="attentionText" column="attention_text" />
-        <result property="wkt" column="wkt" />
-        <result property="databaseSRID" column="srid"/>
+        <result property="geoJson" column="geoJson" />
+        <result property="attention_text" column="attention_text" />
         <result property="created" column="created" jdbcType="TIMESTAMP" javaType="java.time.OffsetDateTime"/>
         <result property="updated" column="updated" jdbcType="TIMESTAMP" javaType="java.time.OffsetDateTime"/>
     </resultMap>

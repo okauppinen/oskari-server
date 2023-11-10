@@ -14,10 +14,8 @@ public class MyPlace {
     private String imageUrl;
     private String attentionText;
     private Geometry geometry;
+    private String geoJson;
 
-    private String wkt;
-
-    private int databaseSRID;
     private OffsetDateTime created;
     private OffsetDateTime updated;
     public long getId() {
@@ -90,27 +88,14 @@ public class MyPlace {
 
     public void setGeometry(Geometry geometry) {
         this.geometry = geometry;
-        this.wkt = geometry.toText();
     }
 
-    public String getWkt() {
-        return wkt;
+    public String getGeoJson() {
+        return geoJson;
     }
 
-    public void setWkt(String wkt) {
-        this.wkt = wkt;
-    }
-
-    public int getApplicationSRID() {
-        return this.geometry.getSRID();
-    }
-
-    public int getDatabaseSRID() {
-        return databaseSRID;
-    }
-
-    public void setDatabaseSRID(int databaseSRID) {
-        this.databaseSRID = databaseSRID;
+    public void setGeoJson(String geoJson) {
+        this.geoJson = geoJson;
     }
 
     public OffsetDateTime getCreated() {
