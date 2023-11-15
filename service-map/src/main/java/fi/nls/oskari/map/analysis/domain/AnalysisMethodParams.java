@@ -25,6 +25,7 @@ public abstract class AnalysisMethodParams {
     private final String bboxFilterTemplate = "<ogc:Filter><ogc:BBOX><ogc:PropertyName>{geom}</ogc:PropertyName><gml:Envelope srsDimension=\"2\" srsName=\"{srsName}\"><gml:lowerCorner>{x_lower} {y_lower}</gml:lowerCorner><gml:upperCorner>{x_upper} {y_upper}</gml:upperCorner></gml:Envelope></ogc:BBOX></ogc:Filter>";
     private static final String  NO_DATA_FILTER_TEMPLATE = "<ogc:And><ogc:PropertyIsNotEqualTo matchCase=\"false\"><ogc:PropertyName>{propertyName}</ogc:PropertyName><ogc:Literal>{propertyValue}</ogc:Literal></ogc:PropertyIsNotEqualTo></ogc:And></ogc:And></ogc:Filter>";
     private static final String  NO_DATACOUNT_FILTER_TEMPLATE = "<ogc:And><ogc:PropertyIsEqualTo matchCase=\"false\"><ogc:PropertyName>{propertyName}</ogc:PropertyName><ogc:Literal>{propertyValue}</ogc:Literal></ogc:PropertyIsEqualTo></ogc:And></ogc:And></ogc:Filter>";
+    private static final String SRS_PREFIX = "http://www.opengis.net/gml/srs/epsg.xml#";
 
     public final String wfsReferenceTemplate = "wfs-reference.xml";
     public final String dataReferenceTemplate = "data-reference.xml";
@@ -179,7 +180,8 @@ public abstract class AnalysisMethodParams {
     }
 
     public String getSrsName() {
-        return srsName;
+        String srid = srsName.substring(srsName.indexOf(':') + 1);
+        return SRS_PREFIX + srid;
     }
 
     public void setSrsName(String srsName) {
